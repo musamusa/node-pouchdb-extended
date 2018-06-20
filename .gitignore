@@ -67,3 +67,4 @@ typings/
 node_modules
 .idea
 run.js
+localDB
