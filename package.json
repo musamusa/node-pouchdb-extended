@@ -1,8 +1,8 @@
 {
-  "name": "pouchdb-extended",
+  "name": "node-pouchdb-extended",
   "version": "0.0.1",
   "main": "index.js",
-  "repository": "git@github.com:musamusa/pouchdb-extended.git",
+  "repository": "git@github.com:musamusa/node-pouchdb-extended.git",
   "author": "Musa Musa <musakunte@gmail.com>",
   "license": "MIT",
   "scripts": {
