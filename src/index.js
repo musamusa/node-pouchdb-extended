@@ -50,7 +50,7 @@ class Database {
     couchdbUrlOrDBName = couchdbUrlOrDBName || 'localDB'
     this.dbUrl = couchdbUrlOrDBName
     options = Utility.is.object(options) ? options : {}
-    dbInstances[couchdbUrlOrDBName] = this.db = PouchDB(couchdbUrlOrDBName, options)
+    this.db = PouchDB(couchdbUrlOrDBName, options)
   }
 
   get (id) {
@@ -61,7 +61,7 @@ class Database {
     doc = DBUtils.addTimeInfo(doc)
     const saveDoc = (doc) => {
       if (doc._id) {
-        return DBUtils.update(doc)
+        return DBUtils.update(doc, this.db)
           .catch(() => {
             return this.db.put(doc, doc._id)
               .then((res) => {
@@ -71,7 +71,7 @@ class Database {
               })
           })
       } else {
-        return DBUtils.insert(doc)
+        return DBUtils.insert(doc, this.db)
       }
     }
     return saveDoc(doc)
@@ -172,11 +172,11 @@ class Database {
   }
 
   static getInstance (couchdbUrlOrDBName, reload) {
-    if (dbInstances[couchdbUrlOrDBName] && !reload) {
-      return dbInstances[couchdbUrlOrDBName]
+    if (!dbInstances[couchdbUrlOrDBName] || reload) {
+      dbInstances[couchdbUrlOrDBName] = new Database(couchdbUrlOrDBName)
     }
 
-    return new Database(couchdbUrlOrDBName)
+    return dbInstances[couchdbUrlOrDBName]
   }
 }
 

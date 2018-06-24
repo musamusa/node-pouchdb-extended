@@ -87,7 +87,7 @@ var Database = function () {
     couchdbUrlOrDBName = couchdbUrlOrDBName || 'localDB';
     this.dbUrl = couchdbUrlOrDBName;
     options = _nodeCodeUtility2.default.is.object(options) ? options : {};
-    dbInstances[couchdbUrlOrDBName] = this.db = (0, _pouchdb2.default)(couchdbUrlOrDBName, options);
+    this.db = (0, _pouchdb2.default)(couchdbUrlOrDBName, options);
   }
 
   _createClass(Database, [{
@@ -103,7 +103,7 @@ var Database = function () {
       doc = DBUtils.addTimeInfo(doc);
       var saveDoc = function saveDoc(doc) {
         if (doc._id) {
-          return DBUtils.update(doc).catch(function () {
+          return DBUtils.update(doc, _this.db).catch(function () {
             return _this.db.put(doc, doc._id).then(function (res) {
               doc._id = res.id;
               doc._rev = res.rev;
@@ -111,7 +111,7 @@ var Database = function () {
             });
           });
         } else {
-          return DBUtils.insert(doc);
+          return DBUtils.insert(doc, _this.db);
         }
       };
       return saveDoc(doc);
@@ -224,11 +224,11 @@ var Database = function () {
   }], [{
     key: 'getInstance',
     value: function getInstance(couchdbUrlOrDBName, reload) {
-      if (dbInstances[couchdbUrlOrDBName] && !reload) {
-        return dbInstances[couchdbUrlOrDBName];
+      if (!dbInstances[couchdbUrlOrDBName] || reload) {
+        dbInstances[couchdbUrlOrDBName] = new Database(couchdbUrlOrDBName);
       }
 
-      return new Database(couchdbUrlOrDBName);
+      return dbInstances[couchdbUrlOrDBName];
     }
   }]);
 
