@@ -30,6 +30,10 @@ var _requestPromise = require('request-promise');
 
 var _requestPromise2 = _interopRequireDefault(_requestPromise);
 
+var _url = require('url');
+
+var _url2 = _interopRequireDefault(_url);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -81,16 +85,36 @@ var DBUtils = function () {
 }();
 
 var Database = function () {
-  function Database(couchdbUrlOrDBName, options) {
+  function Database(couchDBOptions) {
     _classCallCheck(this, Database);
 
-    couchdbUrlOrDBName = couchdbUrlOrDBName || 'localDB';
-    this.dbUrl = couchdbUrlOrDBName;
-    options = _nodeCodeUtility2.default.is.object(options) ? options : {};
-    this.db = (0, _pouchdb2.default)(couchdbUrlOrDBName, options);
+    this.options = _nodeCodeUtility2.default.is.object(couchDBOptions) ? couchDBOptions : {};
+    this.options.db = this.options.db || 'localDB';
+    this.options.dbOptions = _nodeCodeUtility2.default.is.object(this.options.dbOptions) ? this.options.dbOptions : {};
+    this.db = (0, _pouchdb2.default)(this.getDBFUllUrl(), this.options.dbOptions);
   }
 
   _createClass(Database, [{
+    key: 'getDBBaseUrl',
+    value: function getDBBaseUrl() {
+      var urlObject = new _url2.default.URL(this.options.host);
+      if (this.options.auth && _nodeCodeUtility2.default.is.object(this.options.auth) && this.options.auth.username && this.options.auth.password) {
+        urlObject.auth = this.options.auth.username + ':' + this.options.auth.password;
+      }
+      urlObject.path = '';
+      urlObject.pathname = '';
+      urlObject.port = this.options.port || 80;
+      return _url2.default.format(urlObject);
+    }
+  }, {
+    key: 'getDBFUllUrl',
+    value: function getDBFUllUrl() {
+      var urlObject = new _url2.default.URL(this.getDBBaseUrl());
+      urlObject.path = '/' + this.options.db;
+      urlObject.pathname = urlObject.path;
+      return _url2.default.format(urlObject);
+    }
+  }, {
     key: 'get',
     value: function get(id) {
       return this.db.get(id);
@@ -223,12 +247,14 @@ var Database = function () {
     }
   }], [{
     key: 'getInstance',
-    value: function getInstance(couchdbUrlOrDBName, reload) {
-      if (!dbInstances[couchdbUrlOrDBName] || reload) {
-        dbInstances[couchdbUrlOrDBName] = new Database(couchdbUrlOrDBName);
+    value: function getInstance(couchOptions, reload) {
+      couchOptions = _nodeCodeUtility2.default.is.object(couchOptions) ? couchOptions : {};
+      couchOptions.db = _nodeCodeUtility2.default.is.string(couchOptions.db) ? couchOptions.db : 'test';
+      if (!dbInstances[couchOptions.db] || reload) {
+        dbInstances[couchOptions.db] = new Database(couchOptions);
       }
 
-      return dbInstances[couchdbUrlOrDBName];
+      return dbInstances[couchOptions.db];
     }
   }]);
 

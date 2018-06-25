@@ -6,6 +6,7 @@ import PouchDB from 'pouchdb'
 import Promise from 'bluebird'
 import Utility from 'node-code-utility'
 import request from 'request-promise'
+import url from 'url'
 
 let dbInstances = {}
 
@@ -46,11 +47,29 @@ class DBUtils {
 }
 
 class Database {
-  constructor (couchdbUrlOrDBName, options) {
-    couchdbUrlOrDBName = couchdbUrlOrDBName || 'localDB'
-    this.dbUrl = couchdbUrlOrDBName
-    options = Utility.is.object(options) ? options : {}
-    this.db = PouchDB(couchdbUrlOrDBName, options)
+  constructor (couchDBOptions) {
+    this.options = Utility.is.object(couchDBOptions) ? couchDBOptions : {}
+    this.options.db = this.options.db || 'localDB'
+    this.options.dbOptions = Utility.is.object(this.options.dbOptions) ? this.options.dbOptions : {}
+    this.db = PouchDB(this.getDBFUllUrl(), this.options.dbOptions)
+  }
+
+  getDBBaseUrl () {
+    const urlObject = new url.URL(this.options.host)
+    if (this.options.auth && Utility.is.object(this.options.auth) && this.options.auth.username && this.options.auth.password) {
+      urlObject.auth = `${this.options.auth.username}:${this.options.auth.password}`
+    }
+    urlObject.path = ''
+    urlObject.pathname = ''
+    urlObject.port = this.options.port || 80
+    return url.format(urlObject)
+  }
+
+  getDBFUllUrl () {
+    const urlObject = new url.URL(this.getDBBaseUrl())
+    urlObject.path = `/${this.options.db}`
+    urlObject.pathname = urlObject.path
+    return url.format(urlObject)
   }
 
   get (id) {
@@ -171,12 +190,14 @@ class Database {
     return this.db.createIndex(doc)
   }
 
-  static getInstance (couchdbUrlOrDBName, reload) {
-    if (!dbInstances[couchdbUrlOrDBName] || reload) {
-      dbInstances[couchdbUrlOrDBName] = new Database(couchdbUrlOrDBName)
+  static getInstance (couchOptions, reload) {
+    couchOptions = Utility.is.object(couchOptions) ? couchOptions : {}
+    couchOptions.db = Utility.is.string(couchOptions.db) ? couchOptions.db : 'test'
+    if (!dbInstances[couchOptions.db] || reload) {
+      dbInstances[couchOptions.db] = new Database(couchOptions)
     }
 
-    return dbInstances[couchdbUrlOrDBName]
+    return dbInstances[couchOptions.db]
   }
 }
 
