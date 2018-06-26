@@ -97,22 +97,19 @@ var Database = function () {
   _createClass(Database, [{
     key: 'getDBBaseUrl',
     value: function getDBBaseUrl() {
-      var urlObject = new _url2.default.URL(this.options.host);
+      var urlObject = _url2.default.parse(this.options.host);
+      var port = this.options.port || 80;
+
       if (this.options.auth && _nodeCodeUtility2.default.is.object(this.options.auth) && this.options.auth.username && this.options.auth.password) {
         urlObject.auth = this.options.auth.username + ':' + this.options.auth.password;
       }
-      urlObject.path = '';
-      urlObject.pathname = '';
-      urlObject.port = this.options.port || 80;
-      return _url2.default.format(urlObject);
+
+      return _url2.default.format(urlObject).replace(/\/$/, '') + ':' + port;
     }
   }, {
     key: 'getDBFUllUrl',
     value: function getDBFUllUrl() {
-      var urlObject = new _url2.default.URL(this.getDBBaseUrl());
-      urlObject.path = '/' + this.options.db;
-      urlObject.pathname = urlObject.path;
-      return _url2.default.format(urlObject);
+      return this.getDBBaseUrl() + '/' + this.options.db;
     }
   }, {
     key: 'get',

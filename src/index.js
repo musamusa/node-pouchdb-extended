@@ -55,21 +55,18 @@ class Database {
   }
 
   getDBBaseUrl () {
-    const urlObject = new url.URL(this.options.host)
+    const urlObject = url.parse(this.options.host)
+    const port = this.options.port || 80
+
     if (this.options.auth && Utility.is.object(this.options.auth) && this.options.auth.username && this.options.auth.password) {
       urlObject.auth = `${this.options.auth.username}:${this.options.auth.password}`
     }
-    urlObject.path = ''
-    urlObject.pathname = ''
-    urlObject.port = this.options.port || 80
-    return url.format(urlObject)
+
+    return `${(url.format(urlObject)).replace(/\/$/, '')}:${port}`
   }
 
   getDBFUllUrl () {
-    const urlObject = new url.URL(this.getDBBaseUrl())
-    urlObject.path = `/${this.options.db}`
-    urlObject.pathname = urlObject.path
-    return url.format(urlObject)
+    return `${this.getDBBaseUrl()}/${this.options.db}`
   }
 
   get (id) {
